@@ -1,106 +1,156 @@
-require "./src/stego/canvas"
-require "./src/utils/zip"
 require "stumpy_png"
+require "commander"
+require "./src/stego/canvas"
+require "./src/utils/os"
+require "./src/utils/zip"
 
 include StumpyPNG
 include Utils
 
-puts "
- ████  █████ ██████  ████   ████  
+banner = "
+████  █████ ██████  ████   ████  
 ▓        ▓   ▓      ▓    ▓ ▓    ▓ 
- ▒▒▒▒    ▒   ▒▒▒▒▒  ▒      ▒    ▒ 
-     ▒   ▒   ▒      ▒  ▒▒▒ ▒    ▒ 
- ░░░░    ░   ░░░░░░  ░░░░   ░░░░ 
-
+▒▒▒▒    ▒   ▒▒▒▒▒  ▒      ▒    ▒ 
+    ▒   ▒   ▒      ▒  ▒▒▒ ▒    ▒ 
+░░░░    ░   ░░░░░░  ░░░░   ░░░░ 
 "
 
-case ARGV.size
-when 0
-    interactive_mode()
-when 1
-    output_png_path = ARGV[0]
-    raise "Please provide a PNG file to reveal." if Path[output_png_path].extension != ".png"
+input_flag = Commander::Flag.new do |flag|
+    flag.name = "input_flag"
+    flag.short = "-i"
+    flag.long = "--input"
+    flag.default = ""
+    flag.description = "Absolute or relative path to the input image."
+end
 
-    reveal_file(output_png_path)
-else
-    input_directory = ARGV.select{|f| File.directory?(f)}
-    input_png_path = ARGV.select{|f| File.file?(f) && Path[f].extension == ".png"}
+output_flag = Commander::Flag.new do |flag|
+    flag.name = "output_flag"
+    flag.short = "-o"
+    flag.long = "--output"
+    flag.default = ""
+    flag.description = "Absolute or relative path to the output image."
+end
+
+cli = Commander::Command.new do |cmd|
+  cmd.use = "stego"
+  cmd.long = banner
+
+  cmd.commands.add do |cmd|
+    cmd.use   = "conceal -i inconspicuous.png [files]"
+    cmd.short = "Conceal files or a directory in an image, or leave blank to conceal text."
+    cmd.long  = cmd.short
+
+    cmd.commands.add do |cmd|
+        cmd.use   = "text"
+        cmd.short = "Conceal text in a PNG."
+        cmd.long  = cmd.short
+        cmd.flags.add input_flag, output_flag
+        cmd.run do |options, arguments|
+            conceal_text(options, arguments)
+        end
+    end
+
+    cmd.commands.add do |cmd|
+        cmd.use   = "file"
+        cmd.short = "Conceal files or a directory in a PNG."
+        cmd.long  = cmd.short
+        cmd.flags.add input_flag, output_flag
+        cmd.run do |options, arguments|
+            conceal_file(options, arguments)
+        end
+    end
+  end
+
+  cmd.commands.add do |cmd|
+    cmd.use   = "reveal -i inconspicuous.png"
+    cmd.short = "Reveal files or a message."
+    cmd.long  = cmd.short
+    
+    cmd.commands.add do |cmd|
+        cmd.use   = "text"
+        cmd.short = "Reveal text from a PNG."
+        cmd.long  = cmd.short
+        cmd.flags.add input_flag
+        cmd.run do |options, arguments|
+            reveal_text(options, arguments)
+        end
+    end
+
+    cmd.commands.add do |cmd|
+        cmd.use   = "file"
+        cmd.short = "Reveal files or a directory from a PNG."
+        cmd.long  = cmd.short
+        cmd.flags.add input_flag
+        cmd.run do |options, arguments|
+            reveal_file(options, arguments)
+        end
+    end
+  end
+end
+
+def conceal_text(options, arguments)
+    input_path = options.string["input_flag"]
+    output_path = options.string["output_flag"]
+
+    puts ""
+    puts "Enter text to conceal:"
+    text = gets.not_nil!
+
+    scanvas = StumpyPNG.read(input_path)
+    canvas = Stego::Canvas.new(scanvas)
+    canvas.conceal(text.bytes)
+    canvas.write(output_path)
+end
+
+def conceal_file(options, arguments)
+    input_path = options.string["input_flag"]
+    output_path = options.string["output_flag"]
+
+    input_directory = arguments.select{|f| File.directory?(f)}
     input_files = [] of String
     if input_directory.size > 0
         dir = Dir.new(input_directory[0])
         input_files = dir.children.select{|f| Path[f].extension != ".png"}
                                   .map{|f| (Path[dir.path] / Path[f]).to_s}
     else
-        input_files = ARGV.select{|f| File.file?(f) && Path[f].extension != ".png"}
+        input_files = arguments.select{|f| File.file?(f) && Path[f].extension != ".png"}
     end
     
-    raise "Please provide at least 1 file or directory to conceal." if input_directory.size == 0 && input_files.size == 0
-
-    puts input_files
-    conceal_file(input_png_path[0], input_files)
-end
-
-def interactive_mode()
-    puts "Conceal or Reveal (c)/r"
-    mode = gets.not_nil!.chomp.downcase
-
-    case mode
-    when "", "c"
-        puts "Enter text to conceal:"
-        text = STDIN.noecho &.gets.not_nil!.try &.chomp
-
-        puts "Enter path to PNG carrier image input:"
-        input_png_path = gets.not_nil!.chomp
-
-        puts "Enter path to PNG carrier image ouput (or leave empty to overwrite input):"
-        output_png_path = gets || input_png_path
-
-        conceal_text(text, input_png_path, output_png_path)
-    when "r"
-        puts "Enter path to PNG carrier image ouput:"
-        output_png_path = gets.not_nil!.chomp
-
-        reveal_text(output_png_path)
+    if input_directory.size == 0 && input_files.size == 0
+        put_exit "Please provide at least 1 file or directory to conceal."
     end
-end
 
-def conceal_text(text : String, input_png_path : String, output_png_path : String)
-    scanvas = StumpyPNG.read(input_png_path)
-    canvas = Stego::Canvas.new(scanvas)
-    canvas.conceal(text.bytes)
-    canvas.write(output_png_path)
-end
-
-def conceal_file(input_png_path : String, input_files : Array(String))
-    puts "Concealing #{input_files} in #{input_png_path}"
     puts ""
-    puts "Enter path to PNG carrier image ouput (or leave empty to overwrite input):"
-    output_png_path = gets || input_png_path
-    
+    puts "Concealing file:"
+    input_files.each{|f| puts "  - #{f}"}
+
     zip = create_in_memory_zip(input_files)
-    scanvas = StumpyPNG.read(input_png_path)
+    scanvas = StumpyPNG.read(input_path)
     canvas = Stego::Canvas.new(scanvas)
     canvas.conceal(zip.to_a)
-    canvas.write(output_png_path)
+    canvas.write(output_path)
 end
 
-def reveal_text(output_png_path : String)
-    scanvas = StumpyPNG.read(output_png_path)
+def reveal_text(options, arguments)
+    input_path = options.string["input_flag"]
+    
+    scanvas = StumpyPNG.read(input_path)
     canvas = Stego::Canvas.new(scanvas)
 
     puts ""
     puts String.new(canvas.reveal())
 end
 
-def reveal_file(output_png_path : String)
-    puts "Revealing #{output_png_path} into stego.zip"
+def reveal_file(options, arguments)
+    image_path = options.string["input_flag"]
 
-    scanvas = StumpyPNG.read(output_png_path)
+    scanvas = StumpyPNG.read(image_path)
     canvas = Stego::Canvas.new(scanvas)
 
     zip = canvas.reveal()
     io = IO::Memory.new(zip)
 
+    puts ""
     list_files(io)
     io.rewind
 
@@ -109,3 +159,5 @@ def reveal_file(output_png_path : String)
         IO.copy io, file
     end
 end
+
+Commander.run(cli, ARGV)

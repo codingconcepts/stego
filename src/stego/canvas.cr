@@ -16,8 +16,6 @@ module Stego
             size_bits = size_bits + bits
     
             max_message_size = @canvas.width * @canvas.height * 3
-            puts "Max message size (bytes): #{(max_message_size - 32) // 8}"
-            puts "Message size (bytes):     #{message.size}"
             raise "Message is too big for image" if size_bits.size > max_message_size
     
             size_bits.each_with_index do |b, i|

@@ -1,5 +1,9 @@
 version: 2.0
 shards:
+  commander:
+    git: https://github.com/mrrooijen/commander.git
+    version: 0.4.0
+
   stumpy_core:
     git: https://github.com/stumpycr/stumpy_core.git
     version: 1.9.1

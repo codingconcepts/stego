@@ -44,5 +44,7 @@ def reveal()
 
     scanvas = StumpyPNG.read(output_path)
     canvas = Stego::Canvas.new(scanvas)
+
+    puts ""
     puts canvas.reveal()
 end

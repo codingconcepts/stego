@@ -3,11 +3,46 @@ require "stumpy_png"
 
 include StumpyPNG
 
-scanvas = StumpyPNG.read("examples/input.png")
-canvas = Stego::Canvas.new(scanvas)
-canvas.conceal("The quick brown fox jumps over the lazy dog")
-canvas.write("examples/output.png")
+puts "
+ ████  █████ ██████  ████   ████  
+▓        ▓   ▓      ▓    ▓ ▓    ▓ 
+ ▒▒▒▒    ▒   ▒▒▒▒▒  ▒      ▒    ▒ 
+     ▒   ▒   ▒      ▒  ▒▒▒ ▒    ▒ 
+ ░░░░    ░   ░░░░░░  ░░░░   ░░░░ 
 
-scanvas = StumpyPNG.read("examples/output.png")
-canvas = Stego::Canvas.new(scanvas)
-puts canvas.reveal()
+"
+
+puts "Conceal or Reveal (c)/r"
+mode = gets.not_nil!.chomp.downcase
+
+case mode
+when "", "c"
+    conceal()
+when "r"
+    reveal()
+end
+
+def conceal()
+    puts "Enter text to conceal:"
+    text = STDIN.noecho &.gets.not_nil!.try &.chomp
+
+    puts "Enter path to PNG carrier image input:"
+    input_path = gets.not_nil!.chomp
+
+    puts "Enter path to PNG carrier image ouput (or leave empty to overwrite input):"
+    output_path = gets || input_path
+
+    scanvas = StumpyPNG.read(input_path)
+    canvas = Stego::Canvas.new(scanvas)
+    canvas.conceal(text)
+    canvas.write(output_path)
+end
+
+def reveal()
+    puts "Enter path to PNG carrier image ouput:"
+    output_path = gets.not_nil!.chomp
+
+    scanvas = StumpyPNG.read(output_path)
+    canvas = Stego::Canvas.new(scanvas)
+    puts canvas.reveal()
+end

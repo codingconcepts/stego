@@ -10,7 +10,11 @@ Hide your stuff in PNGs.
 
 # Installation
 
-TODO
+Install Stego using the latest binary from the [Releases](https://github.com/codingconcepts/stego/releases/latest) page and extracting the binary from the tar file as follows:
+
+```
+$ tar -xzf build/stego_[VERSION]_macos.tar.gz
+```
 
 # Usage
 

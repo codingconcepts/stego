@@ -23,12 +23,20 @@ when 1
 
     reveal_file(output_png_path)
 else
+    input_directory = ARGV.select{|f| File.directory?(f)}
     input_png_path = ARGV.select{|f| File.file?(f) && Path[f].extension == ".png"}
-    raise "Please provide 1 PNG carrier image input." if input_png_path.size > 1
+    input_files = [] of String
+    if input_directory.size > 0
+        dir = Dir.new(input_directory[0])
+        input_files = dir.children.select{|f| Path[f].extension != ".png"}
+                                  .map{|f| (Path[dir.path] / Path[f]).to_s}
+    else
+        input_files = ARGV.select{|f| File.file?(f) && Path[f].extension != ".png"}
+    end
+    
+    raise "Please provide at least 1 file or directory to conceal." if input_directory.size == 0 && input_files.size == 0
 
-    input_files = ARGV.select{|f| File.file?(f) && Path[f].extension != ".png"}
-    raise "Please provide at least 1 file to conceal." if input_files.size == 0
-
+    puts input_files
     conceal_file(input_png_path[0], input_files)
 end
 

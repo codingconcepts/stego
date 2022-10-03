@@ -80,3 +80,27 @@ Revealing testing/output.png into stego.zip
   - a.csv
   - b.csv
 ```
+
+# Todos
+
+* Header section
+
+Create a binary-encoded header section like the following example:
+
+| Section        | Example                           |
+| -------        | -------                           |
+| Message length | 000000000000000000000001001000011 |
+| Colour from    | 000000
+|                | 0000 0000 0000 0000 0000 0000     |
+| Colour to      | ffffff                            |
+|                | 1111 1111 1111 1111 1111 1111     |
+
+Giving and 80 bit header similar to:
+
+```
+000000000000000000000001001000011000000000000000000000000111111111111111111111111
+```
+
+* Message encryption
+
+* Header encryption

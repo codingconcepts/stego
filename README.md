@@ -25,6 +25,8 @@ To use Stego in interactive mode, simply open the binary without any arguments:
 To conceal text:
 
 ```
+$ stego
+
 Conceal or Reveal (c)/r
 
 Enter text to conceal:
@@ -40,6 +42,8 @@ Enter path to PNG carrier image ouput (or leave empty to overwrite input):
 To reveal text:
 
 ```
+$ stego
+
 Conceal or Reveal (c)/r
 
 Enter path to PNG carrier image ouput:
@@ -55,7 +59,7 @@ To use Stego to conceal files, invoke the binary with to the paths to 2 or more 
 In the following example, we hide a.csv and b.csv into input.png:
 
 ```
-$ stego testing/a.csv testing/b.csv testing/input.png
+$ stego testing/ testing/input.png
 
 Concealing ["testing/a.csv", "testing/b.csv"] in testing/input.png
 

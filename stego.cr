@@ -85,7 +85,7 @@ def reveal_text(output_png_path : String)
 end
 
 def reveal_file(output_png_path : String)
-    puts "Revealing #{output_png_path}"
+    puts "Revealing #{output_png_path} into stego.zip"
 
     scanvas = StumpyPNG.read(output_png_path)
     canvas = Stego::Canvas.new(scanvas)
@@ -93,6 +93,10 @@ def reveal_file(output_png_path : String)
     zip = canvas.reveal()
     io = IO::Memory.new(zip)
 
+    list_files(io)
+    io.rewind
+
+    # Create a zip file containing the concealed files.
     File.open("stego.zip", "w") do |file|
         IO.copy io, file
     end

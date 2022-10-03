@@ -12,4 +12,11 @@ module Utils
 
         input.to_slice
     end
+
+    def list_files(io : IO)
+        zip = Compress::Zip::Reader.new(io)
+        zip.each_entry do |entry|
+            puts "  - #{entry.filename}"
+        end
+    end
 end

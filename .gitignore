@@ -2,7 +2,11 @@
 !*/
 !*.*
 
+*.dwarf
+
 docs/
 lib/
 bin/
-testing/
+
+.DS_Store
+stego.zip

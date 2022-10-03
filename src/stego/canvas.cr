@@ -10,8 +10,8 @@ module Stego
         def initialize(@canvas : StumpyPNG::Canvas)
         end
     
-        def conceal(message : String)
-            bits = string_to_bits(message)
+        def conceal(message : Array(UInt8))
+            bits = bytes_to_bits(message)
             size_bits = bitarray_to_bits(num_bits(bits.size))
             size_bits = size_bits + bits
     
@@ -25,7 +25,7 @@ module Stego
             end
         end
     
-        def reveal() : String
+        def reveal() : Bytes
             # Fetch the number of message bits from the first 32 canvas bits.
             msg_size = get_num_bits()
             
@@ -40,7 +40,8 @@ module Stego
     
             msg_bits.reverse!
             
-            String.new(msg_bits.to_slice).reverse
+            msg_bytes = msg_bits.to_slice.reverse!
+            msg_bytes
         end
     
         def get_num_bits() : Int

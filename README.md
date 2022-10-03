@@ -83,6 +83,25 @@ Revealing testing/output.png into stego.zip
 
 # Todos
 
+* Better CLI experience using commands, for example:
+
+```
+$ stego -h
+  conceal   Conceal a message or files
+  reveal    Reveal a message or files
+  stats     Get image stats
+
+$ stego conceal -h
+  -m        The message to conceal
+  -i        The absolute or relative path to the image to conceal data in
+
+$ stego reveal -h
+  -i        The absolute or relative path to the image to reveal data from
+
+$ stego stats -h
+  -i        The absolute or relative path to the image to generate stats for
+```
+
 * Header section
 
 Create a binary-encoded header section like the following example:

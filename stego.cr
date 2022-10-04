@@ -133,7 +133,7 @@ def conceal_file(cmd, options, arguments)
   glob = options.string["glob_flag"]
 
   dirs = arguments.select { |a| File.directory? a }
-    .map { |a| Path[a] / "**/*" }
+    .map { |a| Path[a] / glob }
     .map { |a| Dir.glob(a) }
     .flatten
     .select { |a| File.file? a }

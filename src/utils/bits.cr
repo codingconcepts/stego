@@ -38,7 +38,6 @@ module Utils
   end
 
   def set_lsb(n : UInt8, new : UInt8)
-    UInt8
     new_bit = new & (1 << 0)
 
     if new_bit > 0
@@ -49,7 +48,6 @@ module Utils
   end
 
   def get_lsb(n : UInt8)
-    UInt8
     n.bit(0)
   end
 end

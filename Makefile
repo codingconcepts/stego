@@ -32,3 +32,7 @@ build: validate_version
 	crystal build --release -o build/stego stego.cr
 	(cd build && tar -zcvf stego_${VERSION}_macos.tar.gz ./stego)
 	rm ./build/stego ./build/*.dwarf
+
+tidy:
+	rm stego stego.dwarf stego.zip
+	rm build/*tar.gz

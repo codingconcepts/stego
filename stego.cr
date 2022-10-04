@@ -54,7 +54,7 @@ cli = Commander::Command.new do |cmd|
       cmd.long = cmd.short
       cmd.flags.add input_flag, output_flag
       cmd.run do |options, arguments|
-        conceal_text(options, arguments)
+        conceal_text(cmd, options, arguments)
       end
     end
 
@@ -64,7 +64,7 @@ cli = Commander::Command.new do |cmd|
       cmd.long = cmd.short
       cmd.flags.add input_flag, output_flag, glob_flag
       cmd.run do |options, arguments|
-        conceal_file(options, arguments)
+        conceal_file(cmd, options, arguments)
       end
     end
   end
@@ -80,7 +80,7 @@ cli = Commander::Command.new do |cmd|
       cmd.long = cmd.short
       cmd.flags.add input_flag
       cmd.run do |options, arguments|
-        reveal_text(options, arguments)
+        reveal_text(cmd, options, arguments)
       end
     end
 
@@ -90,15 +90,28 @@ cli = Commander::Command.new do |cmd|
       cmd.long = cmd.short
       cmd.flags.add input_flag
       cmd.run do |options, arguments|
-        reveal_file(options, arguments)
+        reveal_file(cmd, options, arguments)
       end
+    end
+  end
+
+  cmd.commands.add do |cmd|
+    cmd.use = "stat"
+    cmd.short = "Get stats for a PNG."
+    cmd.long = cmd.short
+    cmd.flags.add input_flag
+    cmd.run do |options, arguments|
+      stat(options, arguments)
     end
   end
 end
 
-def conceal_text(options, arguments)
+def conceal_text(cmd, options, arguments)
   input_path = options.string["input_flag"]
+  put_exit cmd.help if input_path == ""
+
   output_path = options.string["output_flag"]
+  put_exit cmd.help if output_path == ""
 
   puts ""
   puts "Enter text to conceal:"
@@ -110,9 +123,13 @@ def conceal_text(options, arguments)
   canvas.write(output_path)
 end
 
-def conceal_file(options, arguments)
+def conceal_file(cmd, options, arguments)
   input_path = options.string["input_flag"]
+  put_exit cmd.help if input_path == ""
+
   output_path = options.string["output_flag"]
+  put_exit cmd.help if output_path == ""
+
   glob = options.string["glob_flag"]
 
   dirs = arguments.select { |a| File.directory? a }
@@ -128,9 +145,7 @@ def conceal_file(options, arguments)
 
   files = (files + dirs).uniq
 
-  if files.size == 0
-    put_exit "Please provide at least 1 file to conceal."
-  end
+  put_exit "Please provide at least 1 file to conceal." if files.size == 0
 
   puts ""
   puts "Concealing file:"
@@ -143,8 +158,9 @@ def conceal_file(options, arguments)
   canvas.write(output_path)
 end
 
-def reveal_text(options, arguments)
+def reveal_text(cmd, options, arguments)
   input_path = options.string["input_flag"]
+  put_exit cmd.help if input_path == ""
 
   scanvas = StumpyPNG.read(input_path)
   canvas = Stego::Canvas.new(scanvas)
@@ -153,10 +169,11 @@ def reveal_text(options, arguments)
   puts String.new(canvas.reveal)
 end
 
-def reveal_file(options, arguments)
-  image_path = options.string["input_flag"]
+def reveal_file(cmd, options, arguments)
+  input_path = options.string["input_flag"]
+  put_exit cmd.help if input_path == ""
 
-  scanvas = StumpyPNG.read(image_path)
+  scanvas = StumpyPNG.read(input_path)
   canvas = Stego::Canvas.new(scanvas)
 
   zip = canvas.reveal
@@ -170,6 +187,16 @@ def reveal_file(options, arguments)
   File.open("stego.zip", "w") do |file|
     IO.copy io, file
   end
+end
+
+def stat(options, arguments)
+  image_path = options.string["input_flag"]
+  put_exit "Please provide at least 1 file to conceal." if Path[image_path].extension != ".png"
+
+  scanvas = StumpyPNG.read(image_path)
+  canvas = Stego::Canvas.new(scanvas)
+
+  canvas.stats
 end
 
 Commander.run(cli, ARGV)

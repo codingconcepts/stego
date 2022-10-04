@@ -72,7 +72,7 @@ Can also be used with custom glob patterns:
 $ stego conceal file \
     -i testing/input.png \
     -o testing/output.png \
-    -g **/*.csv
+    -g "**/*.csv"
     testing/a.csv testing/b.csv
 
 Concealing file:
@@ -88,6 +88,16 @@ $ stego reveal file \
 
   - a.csv
   - b.csv
+```
+
+#### Get image stats
+
+```
+$ stego stat \
+    -i testing/input.png
+
+Dimensions  = 256x256
+Can conceal = 24.0kiB
 ```
 
 # Todos

@@ -23,6 +23,12 @@ module Stego
       end
     end
 
+    def stats
+      puts ""
+      puts "Dimensions  = #{@canvas.width}x#{@canvas.height}"
+      puts "Can conceal = #{((@canvas.width * @canvas.height * 3) // 8).humanize_bytes}"
+    end
+
     def reveal : Bytes
       # Fetch the number of message bits from the first 32 canvas bits.
       msg_size = get_num_bits()

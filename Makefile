@@ -5,6 +5,10 @@ ifndef VERSION
 	$(error VERSION is undefined)
 endif
 
+help:
+	crystal build stego.cr && \
+		./stego -h
+
 conceal_text:
 	crystal build stego.cr && \
 		./stego conceal text \
@@ -27,6 +31,11 @@ reveal_file:
 	crystal build stego.cr && \
 		./stego reveal file \
 		-i testing/output.png
+
+stats:
+	crystal build stego.cr && \
+		./stego stat \
+		-i testing/input.png
 
 build: validate_version
 	crystal build --release -o build/stego stego.cr

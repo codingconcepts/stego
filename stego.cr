@@ -8,27 +8,35 @@ include StumpyPNG
 include Utils
 
 banner = "
-████  █████ ██████  ████   ████  
-▓       ▓   ▓      ▓    ▓ ▓    ▓ 
-▒▒▒▒    ▒   ▒▒▒▒▒  ▒      ▒    ▒ 
-    ▒   ▒   ▒      ▒  ▒▒▒ ▒    ▒ 
-░░░░    ░   ░░░░░░  ░░░░   ░░░░ 
+████  █████ ██████  ████   ████
+▓       ▓   ▓      ▓    ▓ ▓    ▓
+▒▒▒▒    ▒   ▒▒▒▒▒  ▒      ▒    ▒
+    ▒   ▒   ▒      ▒  ▒▒▒ ▒    ▒
+░░░░    ░   ░░░░░░  ░░░░   ░░░░
 "
 
 input_flag = Commander::Flag.new do |flag|
-    flag.name = "input_flag"
-    flag.short = "-i"
-    flag.long = "--input"
-    flag.default = ""
-    flag.description = "Absolute or relative path to the input image."
+  flag.name = "input_flag"
+  flag.short = "-i"
+  flag.long = "--input"
+  flag.default = ""
+  flag.description = "Absolute or relative path to the input image."
 end
 
 output_flag = Commander::Flag.new do |flag|
-    flag.name = "output_flag"
-    flag.short = "-o"
-    flag.long = "--output"
-    flag.default = ""
-    flag.description = "Absolute or relative path to the output image."
+  flag.name = "output_flag"
+  flag.short = "-o"
+  flag.long = "--output"
+  flag.default = ""
+  flag.description = "Absolute or relative path to the output image."
+end
+
+glob_flag = Commander::Flag.new do |flag|
+  flag.name = "glob_flag"
+  flag.short = "-g"
+  flag.long = "--glob"
+  flag.default = "**/*"
+  flag.description = "Glob pattern to use when concealing a directory."
 end
 
 cli = Commander::Command.new do |cmd|
@@ -36,128 +44,132 @@ cli = Commander::Command.new do |cmd|
   cmd.long = banner
 
   cmd.commands.add do |cmd|
-    cmd.use   = "conceal -i inconspicuous.png [files]"
+    cmd.use = "conceal -i inconspicuous.png [files]"
     cmd.short = "Conceal files or a directory in an image, or leave blank to conceal text."
-    cmd.long  = cmd.short
+    cmd.long = cmd.short
 
     cmd.commands.add do |cmd|
-        cmd.use   = "text"
-        cmd.short = "Conceal text in a PNG."
-        cmd.long  = cmd.short
-        cmd.flags.add input_flag, output_flag
-        cmd.run do |options, arguments|
-            conceal_text(options, arguments)
-        end
+      cmd.use = "text"
+      cmd.short = "Conceal text in a PNG."
+      cmd.long = cmd.short
+      cmd.flags.add input_flag, output_flag
+      cmd.run do |options, arguments|
+        conceal_text(options, arguments)
+      end
     end
 
     cmd.commands.add do |cmd|
-        cmd.use   = "file"
-        cmd.short = "Conceal files or a directory in a PNG."
-        cmd.long  = cmd.short
-        cmd.flags.add input_flag, output_flag
-        cmd.run do |options, arguments|
-            conceal_file(options, arguments)
-        end
+      cmd.use = "file"
+      cmd.short = "Conceal files or a directory in a PNG."
+      cmd.long = cmd.short
+      cmd.flags.add input_flag, output_flag, glob_flag
+      cmd.run do |options, arguments|
+        conceal_file(options, arguments)
+      end
     end
   end
 
   cmd.commands.add do |cmd|
-    cmd.use   = "reveal -i inconspicuous.png"
+    cmd.use = "reveal -i inconspicuous.png"
     cmd.short = "Reveal files or a message."
-    cmd.long  = cmd.short
-    
+    cmd.long = cmd.short
+
     cmd.commands.add do |cmd|
-        cmd.use   = "text"
-        cmd.short = "Reveal text from a PNG."
-        cmd.long  = cmd.short
-        cmd.flags.add input_flag
-        cmd.run do |options, arguments|
-            reveal_text(options, arguments)
-        end
+      cmd.use = "text"
+      cmd.short = "Reveal text from a PNG."
+      cmd.long = cmd.short
+      cmd.flags.add input_flag
+      cmd.run do |options, arguments|
+        reveal_text(options, arguments)
+      end
     end
 
     cmd.commands.add do |cmd|
-        cmd.use   = "file"
-        cmd.short = "Reveal files or a directory from a PNG."
-        cmd.long  = cmd.short
-        cmd.flags.add input_flag
-        cmd.run do |options, arguments|
-            reveal_file(options, arguments)
-        end
+      cmd.use = "file"
+      cmd.short = "Reveal files or a directory from a PNG."
+      cmd.long = cmd.short
+      cmd.flags.add input_flag
+      cmd.run do |options, arguments|
+        reveal_file(options, arguments)
+      end
     end
   end
 end
 
 def conceal_text(options, arguments)
-    input_path = options.string["input_flag"]
-    output_path = options.string["output_flag"]
+  input_path = options.string["input_flag"]
+  output_path = options.string["output_flag"]
 
-    puts ""
-    puts "Enter text to conceal:"
-    text = gets.not_nil!
+  puts ""
+  puts "Enter text to conceal:"
+  text = gets.not_nil!
 
-    scanvas = StumpyPNG.read(input_path)
-    canvas = Stego::Canvas.new(scanvas)
-    canvas.conceal(text.bytes)
-    canvas.write(output_path)
+  scanvas = StumpyPNG.read(input_path)
+  canvas = Stego::Canvas.new(scanvas)
+  canvas.conceal(text.bytes)
+  canvas.write(output_path)
 end
 
 def conceal_file(options, arguments)
-    input_path = options.string["input_flag"]
-    output_path = options.string["output_flag"]
+  input_path = options.string["input_flag"]
+  output_path = options.string["output_flag"]
+  glob = options.string["glob_flag"]
 
-    input_directory = arguments.select{|f| File.directory?(f)}
-    input_files = [] of String
-    if input_directory.size > 0
-        dir = Dir.new(input_directory[0])
-        input_files = dir.children.select{|f| Path[f].extension != ".png"}
-                                  .map{|f| (Path[dir.path] / Path[f]).to_s}
-    else
-        input_files = arguments.select{|f| File.file?(f) && Path[f].extension != ".png"}
-    end
-    
-    if input_directory.size == 0 && input_files.size == 0
-        put_exit "Please provide at least 1 file or directory to conceal."
-    end
+  dirs = arguments.select { |a| File.directory? a }
+    .map { |a| Path[a] / "**/*" }
+    .map { |a| Dir.glob(a) }
+    .flatten
+    .select { |a| File.file? a }
+    .select { |a| Path[a].extension != ".png" }
 
-    puts ""
-    puts "Concealing file:"
-    input_files.each{|f| puts "  - #{f}"}
+  files = arguments.select { |a| File.file? a }
+    .flatten
+    .select { |a| Path[a].extension != ".png" }
 
-    zip = create_in_memory_zip(input_files)
-    scanvas = StumpyPNG.read(input_path)
-    canvas = Stego::Canvas.new(scanvas)
-    canvas.conceal(zip.to_a)
-    canvas.write(output_path)
+  files = (files + dirs).uniq
+
+  if files.size == 0
+    put_exit "Please provide at least 1 file to conceal."
+  end
+
+  puts ""
+  puts "Concealing file:"
+  files.each { |f| puts "  - #{f}" }
+
+  zip = create_in_memory_zip(files)
+  scanvas = StumpyPNG.read(input_path)
+  canvas = Stego::Canvas.new(scanvas)
+  canvas.conceal(zip.to_a)
+  canvas.write(output_path)
 end
 
 def reveal_text(options, arguments)
-    input_path = options.string["input_flag"]
-    
-    scanvas = StumpyPNG.read(input_path)
-    canvas = Stego::Canvas.new(scanvas)
+  input_path = options.string["input_flag"]
 
-    puts ""
-    puts String.new(canvas.reveal())
+  scanvas = StumpyPNG.read(input_path)
+  canvas = Stego::Canvas.new(scanvas)
+
+  puts ""
+  puts String.new(canvas.reveal)
 end
 
 def reveal_file(options, arguments)
-    image_path = options.string["input_flag"]
+  image_path = options.string["input_flag"]
 
-    scanvas = StumpyPNG.read(image_path)
-    canvas = Stego::Canvas.new(scanvas)
+  scanvas = StumpyPNG.read(image_path)
+  canvas = Stego::Canvas.new(scanvas)
 
-    zip = canvas.reveal()
-    io = IO::Memory.new(zip)
+  zip = canvas.reveal
+  io = IO::Memory.new(zip)
 
-    puts ""
-    list_files(io)
-    io.rewind
+  puts ""
+  list_files(io)
+  io.rewind
 
-    # Create a zip file containing the concealed files.
-    File.open("stego.zip", "w") do |file|
-        IO.copy io, file
-    end
+  # Create a zip file containing the concealed files.
+  File.open("stego.zip", "w") do |file|
+    IO.copy io, file
+  end
 end
 
 Commander.run(cli, ARGV)

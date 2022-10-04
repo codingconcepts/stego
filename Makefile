@@ -11,29 +11,22 @@ conceal_text:
 		-i testing/input.png \
 		-o testing/output.png
 
-reveal_text:
-	crystal build stego.cr && \
-		./stego reveal text \
-		-i testing/output.png
-
 conceal_file:
 	crystal build stego.cr && \
 		./stego conceal file \
 		-i testing/input.png \
 		-o testing/output.png \
-		testing/a.csv testing/b.csv
+		testing
+
+reveal_text:
+	crystal build stego.cr && \
+		./stego reveal text \
+		-i testing/output.png
 
 reveal_file:
 	crystal build stego.cr && \
 		./stego reveal file \
 		-i testing/output.png
-
-conceal_dir:
-	crystal build stego.cr && \
-		./stego conceal file \
-		-i testing/input.png \
-		-o testing/output.png \
-		testing/
 
 build: validate_version
 	crystal build --release -o build/stego stego.cr

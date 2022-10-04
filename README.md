@@ -66,6 +66,20 @@ Concealing file:
   - testing/b.csv
 ```
 
+Can also be used with custom glob patterns:
+
+```
+$ stego conceal file \
+    -i testing/input.png \
+    -o testing/output.png \
+    -g **/*.csv
+    testing/a.csv testing/b.csv
+
+Concealing file:
+  - testing/a.csv
+  - testing/b.csv
+```
+
 #### Reveal files
 
 ```

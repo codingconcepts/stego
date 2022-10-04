@@ -34,7 +34,7 @@ reveal_file:
 
 stats:
 	crystal build stego.cr && \
-		./stego stat \
+		./stego stats \
 		-i testing/input.png
 
 build: validate_version

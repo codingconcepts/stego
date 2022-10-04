@@ -93,7 +93,7 @@ $ stego reveal file \
 #### Get image stats
 
 ```
-$ stego stat \
+$ stego stats \
     -i testing/input.png
 
 Dimensions  = 256x256

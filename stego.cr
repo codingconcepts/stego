@@ -96,7 +96,7 @@ cli = Commander::Command.new do |cmd|
   end
 
   cmd.commands.add do |cmd|
-    cmd.use = "stat"
+    cmd.use = "stats"
     cmd.short = "Get stats for a PNG."
     cmd.long = cmd.short
     cmd.flags.add input_flag
